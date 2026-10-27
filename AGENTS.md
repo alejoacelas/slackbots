@@ -6,7 +6,7 @@ channel's bar.
 
 - Visibility: public repo; Slack history and bot decisions stay in ignored `data/`
 - Google account: none
-- Still running or billing: none
+- Still running or billing: a local test run of `modbot.bot` on alejo-m4, live only in the private #modbot-test (`C0CC9UY80MR`); Anthropic API usage per message
 
 ## Moderation Bot
 
