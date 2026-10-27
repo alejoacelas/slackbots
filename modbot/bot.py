@@ -34,9 +34,10 @@ REASONS = {
 def reply_text(user: str, found: list[str], core_topic: str) -> str:
     why = " and ".join(REASONS[v] for v in found)
     return (
-        f"Hi <@{user}>, could you please delete this message? {why[0].upper()}{why[1:]}. "
+        f"Hi <@{user}>, I'm Alejo's bot, could you please delete this message? {why[0].upper()}{why[1:]}. "
         f"This channel is for {core_topic}.\n\n"
-        "If you think I got this wrong, reply in this thread and a moderator will take a look."
+        "If your message was written directly for this channel or you think it's highly relevant to the "
+        "channel's core topic, feel free to leave the post up and Alejo will take a look later."
     )
 
 
@@ -48,6 +49,7 @@ class Bot:
         self.users: dict[str, str] = {}
         self.seen: set[str] = set()
         self.pool = ThreadPoolExecutor(4)
+        self.own_user = self.web.auth_test()["user_id"]
 
     def user_name(self, user_id: str) -> str:
         if user_id not in self.users:
@@ -69,7 +71,7 @@ class Bot:
         key = f"{event.get('channel')}:{event.get('ts')}"
         if not channel or channel["mode"] == "off" or key in self.seen or not is_top_level(event):
             return
-        if event.get("user") in channel.get("exempt_users", []):
+        if event.get("user") in channel.get("exempt_users", []) + [self.own_user]:
             return
         self.seen.add(key)
         self.pool.submit(self.handle, event, channel)

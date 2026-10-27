@@ -9,3 +9,10 @@ name = "too-much-ai"
 core_topic = "learning how to use AI better for high-impact work"
 mode = "off"
 exempt_users = ["U0957U3CJMV"]  # Alejandro
+
+[[channel]]
+id = "C0CC9UY80MR"
+name = "modbot-test"
+core_topic = "learning how to use AI better for high-impact work"
+mode = "live"
+exempt_users = []
