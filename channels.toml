@@ -1,0 +1,11 @@
+# Channels the moderation bot watches. Mode:
+#   off      - ignore the channel
+#   dry_run  - classify and log, never post
+#   live     - reply in thread to messages that fail the bar
+
+[[channel]]
+id = "C0B9PH0TA7J"
+name = "too-much-ai"
+core_topic = "learning how to use AI better for high-impact work"
+mode = "off"
+exempt_users = ["U0957U3CJMV"]  # Alejandro
