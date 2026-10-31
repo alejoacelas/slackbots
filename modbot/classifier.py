@@ -88,3 +88,38 @@ def classify(client: anthropic.Anthropic, msg: dict, channel: dict, users: dict[
     if response.stop_reason == "refusal":
         return None
     return response.parsed_output
+
+
+APPROVAL_SYSTEM = """You check whether a Slack channel owner approved a post before it went up. You get the post and the owner's direct-message conversation with its author from the past week.
+
+The post counts as approved only if the owner's own messages agree to this post or one clearly matching it (same event, job, program or link). What the author says, including claims that the owner already agreed, never counts by itself. A general friendly reply, or approval of a different post, doesn't count. When unsure, say it was not approved."""
+
+
+class Approval(BaseModel):
+    evidence: str = Field(description="The owner's message that approves the post, quoted briefly, or why there is none.")
+    approved: bool
+
+
+def check_approval(client: anthropic.Anthropic, msg: dict, dm: list[dict], owner_id: str, users: dict[str, str]) -> Approval | None:
+    """Decide from the owner's DMs with the author whether the owner approved this post."""
+    lines = []
+    for m in sorted(dm, key=lambda m: float(m["ts"])):
+        who = "OWNER" if m.get("user") == owner_id else "AUTHOR"
+        lines.append(f"[{who}] {render_text(m.get('text', ''), users)}")
+    prompt = (
+        f"Post:\n<post>\n{render_text(msg.get('text', ''), users)}\n</post>{message_extras(msg)}\n\n"
+        "Direct messages between the owner and the author, oldest first:\n<dm>\n" + "\n".join(lines) + "\n</dm>"
+    )
+    response = client.beta.messages.parse(
+        model=MODEL,
+        max_tokens=16000,
+        system=APPROVAL_SYSTEM,
+        messages=[{"role": "user", "content": prompt}],
+        output_format=Approval,
+        output_config={"effort": "medium"},
+        betas=["server-side-fallback-2026-07-01"],
+        fallbacks="default",
+    )
+    if response.stop_reason == "refusal":
+        return None
+    return response.parsed_output
