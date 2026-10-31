@@ -6,7 +6,7 @@ channel's bar.
 
 - Visibility: public repo; Slack history and bot decisions stay in ignored `data/`
 - Google account: none
-- Still running or billing: a local test run of `modbot.bot` on alejo-m4, live only in the private #modbot-test (`C0CC9UY80MR`); Anthropic API usage per message
+- Still running or billing: `modbot.service` on the agent server, live in #too-much-ai (`C0B9PH0TA7J`) and the private #modbot-test (`C0CC9UY80MR`); Anthropic API usage per message
 
 ## Moderation Bot
 
@@ -23,10 +23,26 @@ Slack app `A0CCFRH2CPL` ("Moderation Bot"), Socket Mode, bot scopes
 - `uv run python -m modbot.bot` runs the bot and appends every decision to
   `data/decisions.jsonl`.
 
-Run either with credentials injected:
-`~/best/dotfiles/bin/op-agent run --env-file=.env.tpl -- uv run python -m modbot.bot`
+The bot only receives messages from channels it's a member of; invite it before
+setting a channel to `dry_run` or `live`.
 
-## Credentials (personal 1Password, vault `mac-agents`)
+Run either locally with credentials injected:
+`~/best/dotfiles/bin/op-agent run --env-file=.env.tpl -- uv run python -m modbot.bot`.
+Stop any local bot while the server runs: Slack splits events between connections.
+
+## Agent server
+
+The bot runs as `alejo`'s user service `modbot.service`
+([server/modbot.service](server/modbot.service)) from `~/work/slackbots`, with
+secrets from [server/env.tpl](server/env.tpl). It runs as `alejo` rather than
+`agent` because it makes single tool-free Claude calls, not agent sessions.
+Decisions append to `~/work/slackbots/data/decisions.jsonl` there.
+
+Deploy: push, then
+`ssh agent-server 'cd ~/work/slackbots && git pull && ~/.local/bin/uv sync --frozen && systemctl --user restart modbot'`.
+Logs: `ssh agent-server journalctl --user -u modbot -f`.
+
+## Credentials (personal 1Password, vault `mac-agents`; server copies in `server-agents`)
 
 | Variable | Item | Field |
 |---|---|---|
