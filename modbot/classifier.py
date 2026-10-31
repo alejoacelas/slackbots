@@ -1,8 +1,7 @@
-"""Decide whether a top-level Slack message fails the channel's moderation bar.
+"""Decide whether a top-level Slack message is a template message.
 
-A message fails when it is a template message (written once and posted to many
-places) and either is off the channel's core topic or was not written for this
-channel.
+The channel's policy: no template messages (text not written specifically for
+this channel) without asking Alejo first.
 """
 
 import re
@@ -12,15 +11,13 @@ from pydantic import BaseModel, Field
 
 MODEL = "claude-opus-5-5"
 
-SYSTEM = """You moderate a Slack channel. You read one top-level message and decide whether it fails the channel's bar.
+SYSTEM = """You moderate a Slack channel whose policy is: no template messages without asking the channel owner first. You read one top-level message and decide whether it is a template message.
 
-The bar has two rules. Both only apply to template messages.
+A template message is text that was not written specifically for this channel: written once for a broad audience and posted, unchanged or nearly so, to many channels, mailing lists or groups. Examples: event and program announcements, job ads, recruitment calls, product launches, newsletter promotions, surveys and calls for participants. Signs include a headline or bolded title, marketing or press-release tone, generic calls to action ("apply here", "sign up by", "learn more"), eligibility rules, deadlines, "please share" requests, and nothing that refers to this channel, its members or an ongoing conversation.
 
-A template message is text written once and posted, unchanged or nearly so, to many channels, mailing lists or groups: event and program announcements, job ads, recruitment calls, product launches, newsletter promotions, surveys and calls for participants. Signs include a headline or bolded title, marketing or press-release tone, generic calls to action ("apply here", "sign up by", "learn more"), eligibility rules, deadlines, and nothing that refers to this channel, its members or an ongoing conversation. A message is not a template just because it shares a link, promotes the author's own work, or is long and well formatted. Personal posts that share something the author built, read or thinks, written in their own voice for this audience, are not templates.
+The topic doesn't matter: an on-topic announcement is still a template. A short personal note on top of pasted announcement text doesn't change that the bulk of the message is a template; it is still a template, and you record the note in author_framing.
 
-Rule 1 - off-topic template: a template message whose subject is not the channel's core topic. Being about AI is not enough; the message must be about the core topic itself.
-
-Rule 2 - template not addressed to this channel: a template message that was not adapted for this channel. A template counts as addressed to the channel when the author added their own framing for this audience, such as why they think members here would care, a personal note, or a question to the channel. Merely posting it here does not count.
+A message is not a template just because it shares a link, promotes the author's own work, or is long and well formatted. Posts written in the author's own voice for this audience, sharing something they built, read or think, or asking the channel a question, are not templates.
 
 When unsure whether a message is a template, say it is not; a false accusation costs more than a missed one."""
 
@@ -36,22 +33,14 @@ Message:
 
 
 class Verdict(BaseModel):
-    template_evidence: str = Field(description="One or two sentences on whether the text reads as a template and why.")
+    template_evidence: str = Field(description="One or two sentences on whether the text was written for this channel or for a broad audience, and why.")
     is_template: bool
-    on_core_topic: bool = Field(description="Whether the message's subject is the channel's core topic.")
-    addressed_to_channel: bool = Field(description="Whether the author wrote or adapted the message for this channel.")
+    author_framing: bool = Field(description="Whether the author added their own note for this channel around template text. False when the message is not a template.")
     reason: str = Field(description="One sentence, addressed to the author, explaining the decision. Plain and polite.")
 
 
 def violations(v: Verdict) -> list[str]:
-    if not v.is_template:
-        return []
-    out = []
-    if not v.on_core_topic:
-        out.append("off_topic_template")
-    if not v.addressed_to_channel:
-        out.append("not_addressed_template")
-    return out
+    return ["template"] if v.is_template else []
 
 
 _MENTION = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]*)?>")

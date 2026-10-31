@@ -1,5 +1,5 @@
 """Moderation Bot: classify each new top-level message in watched channels and,
-in live channels, ask the author in a thread to delete messages that fail the bar.
+in live channels, ask the author in a thread to delete template messages.
 
 Usage: uv run python -m modbot.bot
 Needs MODBOT_BOT_TOKEN (xoxb), MODBOT_APP_TOKEN (xapp, Socket Mode) and ANTHROPIC_API_KEY.
@@ -25,19 +25,13 @@ from modbot.slack_util import is_top_level
 log = logging.getLogger("modbot")
 DECISIONS = Path("data/decisions.jsonl")
 
-REASONS = {
-    "off_topic_template": "it looks like a template message that isn't about this channel's core topic",
-    "not_addressed_template": "it looks like a template message that wasn't written for this channel",
-}
-
-
-def reply_text(user: str, found: list[str], core_topic: str) -> str:
-    why = " and ".join(REASONS[v] for v in found)
+def reply_text(user: str) -> str:
     return (
-        f"Hi <@{user}>, I'm Alejo's bot, could you please delete this message? {why[0].upper()}{why[1:]}. "
-        f"This channel is for {core_topic}.\n\n"
-        "If your message was written directly for this channel or you think it's highly relevant to the "
-        "channel's core topic, feel free to leave the post up and Alejo will take a look later."
+        f"Hi <@{user}>, I'm Alejo's bot. This channel doesn't take template messages (posts written for many "
+        "places rather than for this channel) unless you've checked with Alejo first. Could you please delete "
+        "this one?\n\n"
+        "If Alejo already said yes, or you wrote this specifically for this channel, feel free to leave it up "
+        "and Alejo will take a look."
     )
 
 
@@ -88,7 +82,7 @@ class Bot:
                 self.web.chat_postMessage(
                     channel=channel["id"],
                     thread_ts=event["ts"],
-                    text=reply_text(event["user"], found, channel["core_topic"]),
+                    text=reply_text(event["user"]),
                 )
                 posted = True
             record = {

@@ -1,8 +1,8 @@
 # slackbots
 
 Scope: Slack bots for the AI Uplift for EA workspace (`T094GSSSF3M`). First bot:
-Moderation Bot, which asks authors to delete template posts that fail a
-channel's bar.
+Moderation Bot, which asks authors to delete template messages, since the policy
+is no template messages without asking Alejo first.
 
 - Visibility: public repo; Slack history and bot decisions stay in ignored `data/`
 - Google account: none
@@ -17,7 +17,8 @@ Slack app `A0CCFRH2CPL` ("Moderation Bot"), Socket Mode, bot scopes
   `live` (replies in thread). Only flip a main channel to `live` with Alejo's
   approval.
 - `modbot/classifier.py` holds the moderation prompt. A message fails when it is
-  a template and is off the core topic or not written for the channel.
+  a template: not written specifically for this channel, whatever its topic. A
+  short personal note on top of pasted announcement text still counts.
 - `uv run python -m modbot.backfill CHANNEL_ID` classifies a channel's history
   with Alejo's user token and writes `data/backfill-<name>.json`; it never posts.
 - `uv run python -m modbot.bot` runs the bot and appends every decision to
