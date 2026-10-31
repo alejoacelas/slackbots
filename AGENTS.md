@@ -10,6 +10,10 @@ is no template messages without asking Alejo first.
 
 ## Moderation Bot
 
+A shareable copy with a setup guide lives in
+[slack-moderation-bot](/Users/alejo/best/projects/2026-10-31-slack-moderation-bot/AGENTS.md);
+port behaviour changes between the two.
+
 Slack app `A0CCFRH2CPL` ("Moderation Bot"), Socket Mode, bot scopes
 `channels:history groups:history channels:read groups:read chat:write users:read`.
 
