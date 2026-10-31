@@ -1,0 +1,13 @@
+[Unit]
+Description=Moderation Bot for the AI Uplift Slack
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/work/slackbots
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/bin/op-agent run --env-file %h/work/slackbots/server/env.tpl -- %h/.local/bin/uv run --frozen python -m modbot.bot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
