@@ -30,8 +30,7 @@ def reply_text(user: str) -> str:
         f"Hi <@{user}>, I'm Alejo's bot. This channel doesn't take template messages (posts written for many "
         "places rather than for this channel) unless you've checked with Alejo first. Could you please delete "
         "this one?\n\n"
-        "If Alejo already said yes, or you wrote this specifically for this channel, feel free to leave it up "
-        "and Alejo will take a look."
+        "If Alejo already said yes, or you wrote this specifically for this channel, feel free to leave it up."
     )
 
 
